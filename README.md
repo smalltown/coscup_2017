@@ -98,7 +98,7 @@ This repository is for demonstrate below items:
 - Within this repository, export Slack legacy token
 
 	```
-	~$ export 
+	~$ export HUBOT_SLACK_TOKEN="**************"
 	```
 
 - Execute below command to launch hubbot container
