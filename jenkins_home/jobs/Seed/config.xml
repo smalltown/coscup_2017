@@ -31,12 +31,15 @@ cp -rf /var/jenkins_home/dsl-repo/config ./
 cp -rf /var/jenkins_home/dsl-repo/dsl ./
 cp -rf /var/jenkins_home/dsl-repo/pipeline ./
 
-cd /var/jenkins_home/pipeline-lib
+
+rm -rf /var/jenkins_home/pipeline-lib-serving
+cp -r /var/jenkins_home/pipeline-lib /var/jenkins_home/pipeline-lib-serving
+cd /var/jenkins_home/pipeline-lib-serving
 git init
 git add .
 git config --global user.email &quot;smalltown@awsug.tw&quot;
 git config --global user.name &quot;smalltown&quot;
-git commit -m &quot;refresh&quot;
+git commit -m &quot;refresh&quot; || true
 </command>
     </hudson.tasks.Shell>
     <javaposse.jobdsl.plugin.ExecuteDslScripts plugin="job-dsl@1.64">
