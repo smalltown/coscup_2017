@@ -31,7 +31,7 @@ lastStable
 lastSuccessful
 nextBuildNumber
 builds/
-workspace/
+*workspace*
 
 # others
 jenkins_home/.bash_history

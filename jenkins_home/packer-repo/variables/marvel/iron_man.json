@@ -1,0 +1,7 @@
+{
+  "base_image": "smalltown/coscup_2017",
+  "base_tag": "ubuntu",
+  "app_image_namespace" : "smalltown",
+  "app_image_name": "coscup_2017_sample_app",
+  "ansible_playbook": "iron_man.ansible"
+}

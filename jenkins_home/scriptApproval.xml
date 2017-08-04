@@ -1,7 +1,28 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <scriptApproval plugin="script-security@1.30">
-  <approvedScriptHashes/>
-  <approvedSignatures/>
+  <approvedScriptHashes>
+    <string>00b8cdf82551f12ec30da33513bd64d62fb31209</string>
+    <string>180dd8a0a9e096d6c648d5bd21c2ba168c0e876d</string>
+    <string>21a68b4ec1bdc232019fb6328ecf7b47e7c7e7dd</string>
+    <string>456318f45728e8da0aaf2514c1ecdf5344816df1</string>
+    <string>46e0d3ef0d885ac2c210f5a45080d7f95e410278</string>
+    <string>54dcf1a9c0acc8dbb91fad6a65896831a08ffe92</string>
+    <string>64382344ddadbcc5686716130e91ab87260ca512</string>
+    <string>70d9d7254e3549e21ee25f86c492dcbcd194553c</string>
+    <string>7435093eb57352bb5b7d5a581cd7704790e25bf0</string>
+    <string>82cd5910c8b19d9ec25c615964373d26667a733c</string>
+    <string>8d7828519d95576c7bd389213f957b55354a063e</string>
+    <string>bae4b50885cfae522b3d794e018b35a49868a490</string>
+    <string>d5965fac35bc91f0abd8611279e5095909d4c7df</string>
+    <string>e574ddb832664a2a0537e86783dd8f10003e9460</string>
+    <string>e77e539d8a6fa015bbeb129b69669cb918b7f259</string>
+    <string>fe57122848a9acb64151d335868f8da478e2c3b5</string>
+  </approvedScriptHashes>
+  <approvedSignatures>
+    <string>method java.io.File exists</string>
+    <string>method java.io.File isDirectory</string>
+    <string>new java.io.File java.lang.String</string>
+  </approvedSignatures>
   <aclApprovedSignatures/>
   <approvedClasspathEntries/>
   <pendingScripts>

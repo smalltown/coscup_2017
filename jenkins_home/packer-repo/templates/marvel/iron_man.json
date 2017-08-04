@@ -1,0 +1,39 @@
+{
+  "variables": {
+    "login_username": "{{env `DOCKERHUB_USERNAME`}}",
+    "login_password": "{{env `DOCKERHUB_PASSWORD`}}"
+  },
+
+  "builders": [{
+    "type": "docker",
+    "image": "{{user `base_image`}}:{{user `base_tag`}}",
+    "commit": true,
+    "pull": true,
+    "run_command": [ "-d", "-i", "-t", "-v", "/tmp:/tmp", "{{.Image}}", "/bin/bash" ]
+  }],
+
+  "provisioners": [
+    {
+      "type": "ansible-local",
+      "playbook_file": "{{user `workspace`}}/{{user `job_folder`}}_{{user `job_name`}}/{{user `ansible_playbook`}}",
+      "role_paths": [ "{{user `workspace`}}/{{user `job_folder`}}_{{user `job_name`}}/ansible" ]
+    }
+  ],
+
+  "post-processors": [
+    [
+      {
+        "type": "docker-tag",
+        "repository": "{{user `app_image_namespace`}}/{{user `app_image_name`}}",
+        "tag": "{{user `app_tag`}}"
+      },
+      {
+        "type": "docker-push",
+        "login": true,
+        "login_username": "{{user `login_username`}}",
+        "login_password": "{{user `login_password`}}"
+      }
+    ]
+  ]
+}
+
