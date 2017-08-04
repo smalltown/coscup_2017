@@ -1,0 +1,21 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ rs_name }}"
+  namespace: {{ namespace }}
+  labels:
+    name: "{{ rs_name }}"
+spec:
+  type: "{{ svc_network_type }}"
+  ports:
+{% for key, value in node_ports.iteritems() %}
+  - port: {{ value.port }}
+    name: {{ key }}
+    targetPort: {{ value.targetPort }}
+{% if value.nodePort is defined %}
+    nodePort: {{ value.nodePort }}
+{% endif %}
+{% endfor %}
+  selector:
+    name: "{{ rs_name }}"

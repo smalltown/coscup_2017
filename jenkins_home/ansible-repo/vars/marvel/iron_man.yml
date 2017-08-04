@@ -1,0 +1,18 @@
+---
+# common
+namespace: default
+
+# rs variable
+rs_name: coscup-marvel-iron-man
+image_name: smalltown/coscup_2017_sample_app
+container_ports:
+  - 80
+
+# svc variable
+svc_network_type: NodePort
+
+node_ports:
+  coscup-marvel-iron-man-port:
+    port: 80
+    targetPort: 80
+    nodePort: 30001

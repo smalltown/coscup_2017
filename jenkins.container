@@ -15,6 +15,7 @@ project=${PROJECT:-"jenkins"}
 jenkins_home=${JENKINS_HOME:-"/var/jenkins_home"}
 container_id=${CONTAINER_ID:-$project-$timestamp}
 kubernetes_endpoint=${KUBERNETES_ENDPOINT:-""}
+kubernetes_token=${KUBERNETES_TOKEN:-""}
 dockerhub_username=${DOCKERHUB_USERNAME:-""}
 dockerhub_password=${DOCKERHUB_PASSWORD:-""}
 host_uid=`id -u`
@@ -40,6 +41,7 @@ docker run --detach \
            --publish 50000:50000 \
            --name $container_id \
            --env "KUBERNETES_ENDPOINT=$kubernetes_endpoint" \
+           --env "KUBERNETES_TOKEN=$kubernetes_token" \
            --env "DOCKERHUB_USERNAME=$dockerhub_username" \
            --env "DOCKERHUB_PASSWORD=$dockerhub_password" \
            --env "HOST_UID=$host_uid" \

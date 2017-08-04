@@ -1,0 +1,54 @@
+---
+
+- name: deploy app into kubernetes
+  hosts: all
+  vars_files:
+    # load specific module config
+    - "../vars/{{ deploy_project }}/{{ deploy_module }}.yml"
+  tasks:
+    - name: create k8s deployment resource yaml file
+      template:
+        src: "../templates/kubernetes/{{ deploy_project }}/{{ deploy_module }}.deployment.yml.j2"
+        dest: "/tmp/{{ deploy_project }}_{{ deploy_module }}_{{ app_tag }}_{{ phase }}.deployment.yml"
+
+    - name: create k8s service resource yaml file
+      template:
+        src: "../templates/kubernetes/{{ deploy_project }}/{{ deploy_module }}.service.yml.j2"
+        dest: "/tmp/{{ deploy_project }}_{{ deploy_module }}_{{ app_tag }}_{{ phase }}.service.yml"
+
+    - name: deploy k8s deployment resource
+      k8s:
+        api_endpoint: "{{ kubernetes_endpoint }}"
+        bearer_token: "{{ kubernetes_token }}"
+        file_reference: "/tmp/{{ deploy_project }}_{{ deploy_module }}_{{ app_tag }}_{{ phase }}.deployment.yml"
+    #    state: present
+
+    - name: update k8s deployment resource
+      k8s:
+        api_endpoint: "{{ kubernetes_endpoint }}"
+        bearer_token: "{{ kubernetes_token }}"
+        file_reference: "/tmp/{{ deploy_project }}_{{ deploy_module }}_{{ app_tag }}_{{ phase }}.deployment.yml"
+        state: update
+
+    - name: deploy k8s service resource
+      k8s:
+        api_endpoint: "{{ kubernetes_endpoint }}"
+        bearer_token: "{{ kubernetes_token }}"
+        file_reference: "/tmp/{{ deploy_project }}_{{ deploy_module }}_{{ app_tag }}_{{ phase }}.service.yml"
+        state: present
+
+    - name: update k8s service resource
+      k8s:
+        api_endpoint: "{{ kubernetes_endpoint }}"
+        bearer_token: "{{ kubernetes_token }}"
+        file_reference: "/tmp/{{ deploy_project }}_{{ deploy_module }}_{{ app_tag }}_{{ phase }}.service.yml"
+        state: update
+
+    #- name: delete k8s deployment & service resource yaml file
+    #  file: 
+    #    path: "{{item}}"
+    #    state: absent
+    #  with_items:
+    #    - "/tmp/{{ deploy_project }}_{{ deploy_module }}_{{ app_tag }}_{{ phase }}.deployment.yml"
+    #    - "/tmp/{{ deploy_project }}_{{ deploy_module }}_{{ app_tag }}_{{ phase }}.service.yml"
+

@@ -28,14 +28,14 @@ pipeline {
       when { expression { version == 'none' } }
 
       steps {
-        script { 
+        script {
           job_info['workspace'] = pwd()
           job_info['trigger_user'] = triggerUser()
           app_tag = new Date().format( 'yyyyMMddHHmmss' )
         }
 
         deleteDir()
-        
+
         // retrieve code from git
         checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: "${job_info['folder']}_${job_info['name']}"]], submoduleCfg: [], userRemoteConfigs: [[url: "https://${job_info['repo_host']}/${job_info['repo_owner']}/${job_info['repo_name']}.git"]]])
 
@@ -59,22 +59,12 @@ pipeline {
 
         dir("${env.JENKINS_HOME}/ansible-repo") {
           echo 'later'
-          //sh "ansible-playbook -i \"localhost,\" -c local --extra-vars \"region=us-west-2 phase=${phase} deploy_project=${job_info['folder']} deploy_module=${job_info['name']} headless=${job_info['k8s']['headless']} autoscaling=${job_info['k8s']['autoscaling']} app_tag=${version}\" playbooks/common/deploy_kubernetes.yml"
+          sh """
+            ansible-playbook -i \"localhost,\" -c local --extra-vars \"phase=${phase} kubernetes_endpoint=${env.KUBERNETES_ENDPOINT} kubernetes_token=${env.KUBERNETES_TOKEN} deploy_project=${job_info['folder']} deploy_module=${job_info['name']}  app_tag=${version}" playbooks/deploy_kubernetes.yml
+          """
         }
       }
     }
-
-    //stage('Save_Build_Number') {
-    //  when { expression { version == 'none' } }
-
-    //  steps {
-    //    sh "mkdir -p ${env.JENKINS_HOME}/version/${job_info['folder']}/${job_info['name']}"
-    //    script {
-    //      def version_list_string = '[\\\'' + job_info['version_info']['version_list'].join('\\\', \\\'') + '\\\']'
-    //      sh "echo ${version_list_string} > ${env.JENKINS_HOME}/version/${job_info['folder']}/${job_info['name']}/version"
-    //    }
-    //  }
-    //}
   }
 
   post {
@@ -101,4 +91,3 @@ pipeline {
     }
   }
 }
-

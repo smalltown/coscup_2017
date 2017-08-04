@@ -1,0 +1,41 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: "{{ rs_name }}"
+  namespace: {{ namespace }}
+  labels:
+    name: "{{ rs_name }}"
+spec:
+  replicas: 2
+  strategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        name: "{{ rs_name }}"
+    spec:
+      containers:
+      - name: "{{ rs_name }}"
+        imagePullPolicy: Always
+        image: "{{ image_name }}:{{ app_tag }}"
+        ports:
+{% for port in container_ports %}
+        - containerPort: {{ port }}
+{% endfor %}
+        readinessProbe:
+          httpGet:
+            path: /index.html
+            port: 80
+          failureThreshold: 5
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        command:
+          - "nginx"
+          - "-g"
+          - "daemon off;"

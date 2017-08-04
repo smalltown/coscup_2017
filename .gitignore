@@ -56,3 +56,5 @@ jenkins_home/userContent/
 #jenkins_home/users/
 jenkins_home/war/
 jenkins_home/pipeline-lib-serving
+
+.DS_Store

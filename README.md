@@ -30,7 +30,7 @@ This repository is for demonstrate below items:
 	```
 	# Specific VM driver by --vm-driver flag if needed, VM driver is one of: [virtualbox xhyve vmwarefusion] (default "virtualbox")
 	
-	~$ minikube start --extra-config=apiserver.BasicAuthFile=static-password.k8s.csv
+	~$ minikube start
 	
 	...
 	Starting local Kubernetes v1.6.4 cluster...
@@ -46,19 +46,24 @@ This repository is for demonstrate below items:
 - There should be a file named **kubeconfig** is generated, kubectl use this file to communicate with minikube
 
 ## Jenkins (power by container)
-- Within this repository, get minikube master endpoint by kubectl
+- Within this repository, get minikube master endpoint & bearer token by kubectl
 
 	```
 	~$ kubectl cluster-info
 	
 	Kubernetes master is running at https://192.168.64.2:8443
+	
+	~$ KUBERNETES_TOKEN=$(kubectl describe secret $(kubectl get secrets | grep default | cut -f1 -d ' ') | grep -E '^token' | cut -f2 -d':' | tr -d '\t')
 	```
 
-- Export minikube master endpoint
+- Export minikube master endpoint & bearer token
 
 	```
-	export KUBERNETES_ENDPOINT="https://192.168.64.2:8443"
+	export KUBERNETES_ENDPOINT="192.168.64.2:8443"
+	export KUBERNETES_TOKEN=$KUBERNETES_TOKEN
 	```
+
+
 
 - Export dockerhub username and password
 

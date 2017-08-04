@@ -84,14 +84,14 @@ pipeline {
       when { expression { version == &apos;none&apos; } }
 
       steps {
-        script { 
+        script {
           job_info[&apos;workspace&apos;] = pwd()
           job_info[&apos;trigger_user&apos;] = triggerUser()
           app_tag = new Date().format( &apos;yyyyMMddHHmmss&apos; )
         }
 
         deleteDir()
-        
+
         // retrieve code from git
         checkout([$class: &apos;GitSCM&apos;, branches: [[name: &apos;*/master&apos;]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: &apos;RelativeTargetDirectory&apos;, relativeTargetDir: &quot;${job_info[&apos;folder&apos;]}_${job_info[&apos;name&apos;]}&quot;]], submoduleCfg: [], userRemoteConfigs: [[url: &quot;https://${job_info[&apos;repo_host&apos;]}/${job_info[&apos;repo_owner&apos;]}/${job_info[&apos;repo_name&apos;]}.git&quot;]]])
 
@@ -115,22 +115,12 @@ pipeline {
 
         dir(&quot;${env.JENKINS_HOME}/ansible-repo&quot;) {
           echo &apos;later&apos;
-          //sh &quot;ansible-playbook -i \&quot;localhost,\&quot; -c local --extra-vars \&quot;region=us-west-2 phase=${phase} deploy_project=${job_info[&apos;folder&apos;]} deploy_module=${job_info[&apos;name&apos;]} headless=${job_info[&apos;k8s&apos;][&apos;headless&apos;]} autoscaling=${job_info[&apos;k8s&apos;][&apos;autoscaling&apos;]} app_tag=${version}\&quot; playbooks/common/deploy_kubernetes.yml&quot;
+          sh &quot;&quot;&quot;
+            ansible-playbook -i \&quot;localhost,\&quot; -c local --extra-vars \&quot;phase=${phase} kubernetes_endpoint=${env.KUBERNETES_ENDPOINT} kubernetes_token=${env.KUBERNETES_TOKEN} deploy_project=${job_info[&apos;folder&apos;]} deploy_module=${job_info[&apos;name&apos;]}  app_tag=${version}&quot; playbooks/deploy_kubernetes.yml
+          &quot;&quot;&quot;
         }
       }
     }
-
-    //stage(&apos;Save_Build_Number&apos;) {
-    //  when { expression { version == &apos;none&apos; } }
-
-    //  steps {
-    //    sh &quot;mkdir -p ${env.JENKINS_HOME}/version/${job_info[&apos;folder&apos;]}/${job_info[&apos;name&apos;]}&quot;
-    //    script {
-    //      def version_list_string = &apos;[\\\&apos;&apos; + job_info[&apos;version_info&apos;][&apos;version_list&apos;].join(&apos;\\\&apos;, \\\&apos;&apos;) + &apos;\\\&apos;]&apos;
-    //      sh &quot;echo ${version_list_string} &gt; ${env.JENKINS_HOME}/version/${job_info[&apos;folder&apos;]}/${job_info[&apos;name&apos;]}/version&quot;
-    //    }
-    //  }
-    //}
   }
 
   post {
@@ -157,7 +147,6 @@ pipeline {
     }
   }
 }
-
 </script>
     <sandbox>false</sandbox>
   </definition>
