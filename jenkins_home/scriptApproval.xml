@@ -1,0 +1,162 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<scriptApproval plugin="script-security@1.30">
+  <approvedScriptHashes/>
+  <approvedSignatures/>
+  <aclApprovedSignatures/>
+  <approvedClasspathEntries/>
+  <pendingScripts>
+    <pendingScript>
+      <context/>
+      <script></script>
+      <language>groovy</language>
+    </pendingScript>
+    <pendingScript>
+      <context/>
+      <script>import groovy.json.*
+
+// load share variable
+def build_info = build_info.load()
+
+// define pipeline global variable
+def job_info = [:]
+
+job_info[&apos;folder&apos;] = &apos;Marvel&apos;
+job_info[&apos;name&apos;] = env.JOB_BASE_NAME
+job_info[&apos;repo_host&apos;] = build_info[&apos;gitlab&apos;][&apos;host&apos;]
+job_info[&apos;repo_owner&apos;] = build_info[&apos;gitlab&apos;][&apos;owner&apos;]
+job_info[&apos;repo_name&apos;] = &apos;agora_lemp&apos;
+job_info[&apos;repo_branch&apos;] = (env.gitlabSourceBranch == null) ? target_branch : env.gitlabSourceBranch
+job_info[&apos;trigger_user&apos;] = &apos;&apos;
+job_info[&apos;version_info&apos;] = [:]
+job_info[&apos;ami&apos;] = build_info[&apos;ami&apos;]
+job_info[&apos;k8s&apos;] = [:]
+job_info[&apos;k8s&apos;][&apos;headless&apos;] = &apos;false&apos;
+job_info[&apos;k8s&apos;][&apos;autoscaling&apos;] = &apos;false&apos;
+
+@NonCPS
+def parseJsonText(String jsonText) {
+  final slurper = new JsonSlurper()
+  return new HashMap&lt;&gt;(slurper.parseText(jsonText))
+}
+
+pipeline {
+
+  agent none
+
+  stages {
+    stage(&apos;Build&apos;) {
+      agent { label &apos;Build&apos; }
+      when { expression { version == &apos;none&apos; } }
+
+      steps {
+        script { 
+          def workspace = pwd()
+          job_info[&apos;trigger_user&apos;] = triggerUser(requester)
+        }
+
+        deleteDir()
+        
+        // retrieve code from git
+        checkout([$class: &apos;GitSCM&apos;, branches: [[name: &quot;remotes/origin/${job_info[&apos;repo_branch&apos;]}&quot;]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: &apos;RelativeTargetDirectory&apos;, relativeTargetDir: &quot;${job_info[&apos;folder&apos;]}_${job_info[&apos;name&apos;]}&quot;], [$class: &apos;LocalBranch&apos;, localBranch: job_info[&apos;repo_branch&apos;]]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: build_info[&apos;gitlab&apos;][&apos;ssh_credentialsId&apos;], url: &quot;git@${job_info[&apos;repo_host&apos;]}:${job_info[&apos;repo_owner&apos;]}/${job_info[&apos;repo_name&apos;]}.git&quot;]]])
+        
+        // bump new version number
+        dir(&quot;./${job_info[&apos;folder&apos;]}_${job_info[&apos;name&apos;]}&quot;) {
+          script {
+            def latest_tag = sh(script: &quot;git tag -l --sort=-v:refname | grep \&apos;v[0-9]\\+\\.[0-9]\\+\\.[0-9]\\+_\&apos; | head -1&quot;, returnStdout: true)
+            job_info[&apos;version_info&apos;][&apos;build_number&apos;] = sh(script: &quot;python ${env.JENKINS_HOME}/workflow-libs/helper/version/manage.py ${versionPattern}  ${latest_tag}&quot;, returnStdout: true)
+
+            def flat_repo_branch = job_info[&apos;repo_branch&apos;].replaceAll(&apos;/&apos;,&apos;_&apos;)
+
+            job_info[&apos;version_info&apos;][&apos;build_number&apos;] = job_info[&apos;version_info&apos;][&apos;build_number&apos;].trim() + &quot;_${flat_repo_branch}_${job_info[&apos;trigger_user&apos;]}&quot;
+          }
+        }
+
+         // build docker images
+        dir(&quot;${env.JENKINS_HOME}/packer-repo&quot;) {
+          sh &quot;packer build -var-file=variables/common/global.json -var-file=variables/${job_info[&apos;folder&apos;]}/${job_info[&apos;name&apos;]}.json -var &apos;region=${build_info[&apos;aws_regions&apos;][&apos;origin_region&apos;]}&apos; -var &apos;app_tag=${job_info[&apos;version_info&apos;][&apos;build_number&apos;]}&apos; -var &apos;workspace=${workspace}&apos; templates/${job_info[&apos;folder&apos;]}/${job_info[&apos;name&apos;]}.json&quot;
+        }
+
+        // push build_number to gitlab
+        dir(&quot;./${job_info[&apos;folder&apos;]}_${job_info[&apos;name&apos;]}&quot;) {
+          withEnv([&quot;GIT_SSH=${env.JENKINS_HOME}/.ssh/ssh-git.sh&quot;, &quot;JENKINS_HOME=${env.JENKINS_HOME}&quot;, &quot;BRANCH=${job_info[&apos;repo_branch&apos;]}&quot;, &quot;TAG=${job_info[&apos;version_info&apos;][&apos;build_number&apos;]}&quot;]) {
+            sh &apos;&apos;&apos;
+              # push tag to remote git service
+              git config --global user.email jarvis@htc.com
+              git config --global user.name jarvis
+              git tag -a ${TAG} -m ${TAG}
+              PKEY=${JENKINS_HOME}/.ssh/jarvis git push origin ${TAG}
+            &apos;&apos;&apos;
+          }
+
+          sh &quot;echo &apos;none&apos; &gt; ../${job_info[&apos;repo_owner&apos;]}_${job_info[&apos;repo_name&apos;]}.git.tag&quot;
+          sh &quot;git tag -l --sort=-v:refname | grep \&apos;v[0-9]\\+\\.[0-9]\\+\\.[0-9]\\+_\&apos; | head -15 &gt;&gt; ../${job_info[&apos;repo_owner&apos;]}_${job_info[&apos;repo_name&apos;]}.git.tag&quot;
+
+          script {
+            def version_list = readFile(&quot;${workspace}/${job_info[&apos;repo_owner&apos;]}_${job_info[&apos;repo_name&apos;]}.git.tag&quot;)
+            job_info[&apos;version_info&apos;][&apos;version_list&apos;] = version_list.split()
+          }
+        }
+      }
+    }
+    stage(&apos;Deploy&apos;) {
+      agent { label &apos;Build&apos; }
+      when { expression { version != &apos;none&apos; } }
+
+      steps {
+        script {
+          def workspace = pwd()
+          job_info[&apos;trigger_user&apos;] = triggerUser()
+        }
+
+        dir(&quot;${env.JENKINS_HOME}/ansible-repo&quot;) {
+          sh &quot;ansible-playbook -i \&quot;localhost,\&quot; -c local --extra-vars \&quot;region=us-west-2 phase=${phase} deploy_project=${job_info[&apos;folder&apos;]} deploy_module=${job_info[&apos;name&apos;]} headless=${job_info[&apos;k8s&apos;][&apos;headless&apos;]} autoscaling=${job_info[&apos;k8s&apos;][&apos;autoscaling&apos;]} app_tag=${version}\&quot; playbooks/common/deploy_kubernetes.yml&quot;
+        }
+      }
+    }
+
+    stage(&apos;Save_Build_Number&apos;) {
+      agent { label &apos;Master&apos; }
+      when { expression { version == &apos;none&apos; } }
+
+      steps {
+        sh &quot;mkdir -p ${env.JENKINS_HOME}/version/${job_info[&apos;folder&apos;]}/${job_info[&apos;name&apos;]}&quot;
+        script {
+          def version_list_string = &apos;[\\\&apos;&apos; + job_info[&apos;version_info&apos;][&apos;version_list&apos;].join(&apos;\\\&apos;, \\\&apos;&apos;) + &apos;\\\&apos;]&apos;
+          sh &quot;echo ${version_list_string} &gt; ${env.JENKINS_HOME}/version/${job_info[&apos;folder&apos;]}/${job_info[&apos;name&apos;]}/version&quot;
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      script {
+        if ( version != &apos;none&apos; ) {
+          deployNotify(phase, version, job_info[&apos;trigger_user&apos;], job_info[&apos;repo_branch&apos;], &apos;Success&apos;, job_info[&apos;region&apos;], job_info[&apos;repo_name&apos;])
+        }
+        else {
+          buildNotify(job_info[&apos;version_info&apos;][&apos;build_number&apos;], job_info[&apos;trigger_user&apos;])
+        }
+      }
+    }
+
+    failure {
+      script {
+        if ( version != &apos;none&apos; ) {
+           deployNotify(phase, version, job_info[&apos;trigger_user&apos;], job_info[&apos;repo_branch&apos;], &apos;Fail&apos;, job_info[&apos;region&apos;], job_info[&apos;repo_name&apos;])
+        }
+        else {
+          buildNotify(job_info[&apos;version_info&apos;][&apos;build_number&apos;], job_info[&apos;trigger_user&apos;], &apos;Fail&apos;)
+        }
+      }
+    }
+  }
+}
+
+</script>
+      <language>groovy</language>
+    </pendingScript>
+  </pendingScripts>
+  <pendingSignatures/>
+  <pendingClasspathEntries/>
+</scriptApproval>

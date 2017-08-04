@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# Exit on any individual command failure.
+set -e
+
+# Pretty colors.
+red='\033[0;31m'
+green='\033[0;32m'
+neutral='\033[0m'
+
+timestamp=$(date +%s)
+
+image=${IMAGE:-"smalltown/coscup_2017:jenkins"}
+project=${PROJECT:-"jenkins"}
+jenkins_home=${JENKINS_HOME:-"/var/jenkins_home"}
+container_id=${CONTAINER_ID:-$project-$timestamp}
+kubernetes_endpoint=${KUBERNETES_ENDPOINT:-""}
+dockerhub_username=${DOCKERHUB_USERNAME:-""}
+dockerhub_password=${DOCKERHUB_PASSWORD:-""}
+host_uid=`id -u`
+opts="--privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro"
+
+# pull the latest docker image
+printf ${green}"Pull the image: "$image${neutral}"\n"
+docker pull $image
+printf "\n"
+
+# run the docker container
+# run the docker container
+printf ${green}"Starting Docker container: "$image"\n"
+printf ${green}"Container ID: "$container_id${neutral}"\n"
+printf ${green}"Kubernetes Endpoint: "$kubernetes_endpoint${neutral}"\n"
+printf ${green}"DockerHub Username: "$dockerhub_username${neutral}"\n"
+printf ${green}"DockerHub Password: "********${neutral}"\n"
+docker run --detach \
+           --volume="$PWD/jenkins_home":"$jenkins_home":rw \
+           --volume="/var/run/docker.sock:/var/run/docker.sock":ro \
+           --publish 8080:8080 \
+           --publish 50000:50000 \
+           --name $container_id \
+           --env "KUBERNETES_ENDPOINT=$kubernetes_endpoint" \
+           --env "DOCKERHUB_USERNAME=$dockerhub_username" \
+           --env "DOCKERHUB_PASSWORD=$dockerhub_password" \
+           --env "HOST_UID=$host_uid" \
+            $opts $image
+
+printf "\n"
