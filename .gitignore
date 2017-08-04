@@ -35,6 +35,7 @@ builds/
 
 # others
 jenkins_home/.bash_history
+jenkins_home/.docker/
 jenkins_home/.gitconfig
 jenkins_home/.java/
 jenkins_home/.owner
