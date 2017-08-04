@@ -37,7 +37,7 @@ docker run --detach \
            --volume="$PWD/jenkins_home":"$jenkins_home":rw \
            --volume="/var/run/docker.sock:/var/run/docker.sock":ro \
            --volume="/tmp:/tmp":rw \
-           --publish 8080:8080 \
+           --publish 80:8080 \
            --publish 50000:50000 \
            --name $container_id \
            --env "KUBERNETES_ENDPOINT=$kubernetes_endpoint" \

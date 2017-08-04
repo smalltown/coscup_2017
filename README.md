@@ -63,8 +63,6 @@ This repository is for demonstrate below items:
 	export KUBERNETES_TOKEN=$KUBERNETES_TOKEN
 	```
 
-
-
 - Export dockerhub username and password
 
 	```
@@ -87,22 +85,36 @@ This repository is for demonstrate below items:
 	1638d5ffc3c25f0a62e737e5b1c8090a2028c2d3dd9cd613a24873022dc93327
 	```
 
-- Visit http://127.0.0.1:8080 from the browser after several minutes
+- Visit http://127.0.0.1 from the browser after several minutes
 
 - Login Jenkins by below account and password<br/>
 	- Admin Account  : coscup<br/>
 	- Admin Password : coscup
 
 
-## Hubot (power by container)
-- Within this repository, export Slack legacy token
+## Hubot (Power By Local)
+- Install necessary npm package
+
+	```
+	~$ npm install -g hubot coffee-script yo generator-hubot
+	```
+
+- GET the Hubot Slack token [**here**](https://my.slack.com/services/new/hubot), then export it
 
 	```
 	~$ export HUBOT_SLACK_TOKEN="**************"
 	```
 
-- Execute below command to launch hubbot container
+- Export jenkins information
 
 	```
-	~$ ./hubot.container
+	~$ export HUBOT_JENKINS_URL="http://127.0.0.1"
+   ~$ export HUBOT_JENKINS_AUTH="coscup:coscup"
+	```
+
+- Execute below command to launch hubbot in local
+
+	```
+	~$ cd hubot_home
+	~$ ./bin/hubot --adapter slack
 	```

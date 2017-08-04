@@ -45,6 +45,7 @@ jenkins_home/jenkins.install.UpgradeWizard.state
 jenkins_home/identity.key.enc
 jenkins_home/init.groovy.d
 jenkins_home/logs/
+jenkins_home/packer-repo@tmp/
 jenkins_home/plugins/
 jenkins_home/plugins/*.bak
 jenkins_home/secret.key
