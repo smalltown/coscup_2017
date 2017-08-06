@@ -92,7 +92,7 @@ This repository is for demonstrate below items:
 	- Admin Password : coscup
 
 
-## Hubot (Power By Local)
+## Hubot (power by local)
 - Install necessary npm package
 
 	```
